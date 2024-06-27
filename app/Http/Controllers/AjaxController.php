@@ -498,16 +498,17 @@ class AjaxController extends Controller
         try {
             DB::transaction(function () use ($data) {
                 $company_code = Company::where('id', $data['company_id'])->pluck('company_code')->first();
-        dd($data);
-                $password = Str::random(8);
+               
+                $password = "asdfgh137";
+                // $password = Str::random(8);
                 $data['password'] = bcrypt($password);
                 $data['username'] = $company_code . '-' . $data['username'];
+                $data['email_verified_at'] = Carbon::now();
                 $user = User::create($data);
                 if (array_key_exists('photo', $data)) {
                     $user->addMedia($data['photo'])->toMediaCollection('profile-photo');
                 }
                 $company = Company::where('id', $data['company_id'])->first();
-
                 $mail_data = [
                     'email' => $user['email'],
                     'username' => $user['username'],
@@ -522,33 +523,37 @@ class AjaxController extends Controller
                 ]);
                 $role = Role::where('name', 'Admin')->where('company_id', $company->id)->first();
                 $permission_ids = [];
-                $package = Package::where('id', $company->package_id)->with('modules')->first();
+                // $package = Package::where('id', $company->package_id)->with('modules')->first();
                 $permission_arr = [];
-                foreach ($package->modules as $key => $module) {
-                    if ($module['name'] == 'Company') {
-                        $company_permissions = Permission::where('module_id', $module['id'])->where('name', '!=', 'Create|Company')->where('name', '!=', 'Delete|Company')->get();
-                        foreach ($company_permissions as $key => $c_permission) {
-                            array_push($permission_arr, $c_permission);
-                        }
-                    } else {
-                        $permissions = Permission::where('module_id', $module['id'])->get();
-                        foreach ($permissions as $key => $permission) {
-                            array_push($permission_arr, $permission);
-                        }
-                        if (count($module->subModules) > 0) {
-                            foreach ($module->subModules as $key => $sub_module) {
-                                $sub_permissions = Permission::where('module_id', $sub_module['id'])->get();
-                                foreach ($sub_permissions as $key => $s_permission) {
-                                    array_push($permission_arr, $s_permission);
-                                }
-                            }
-                        }
-                    }
-                }
+                // foreach ($package->modules as $key => $module) {
+                //     if ($module['name'] == 'Company') {
+                //         $company_permissions = Permission::where('module_id', $module['id'])->where('name', '!=', 'Create|Company')->where('name', '!=', 'Delete|Company')->get();
+                //         foreach ($company_permissions as $key => $c_permission) {
+                //             array_push($permission_arr, $c_permission);
+                //         }
+                //     } else {
+                //         $permissions = Permission::where('module_id', $module['id'])->get();
+                //         foreach ($permissions as $key => $permission) {
+                //             array_push($permission_arr, $permission);
+                //         }
+                //         if (count($module->subModules) > 0) {
+                //             foreach ($module->subModules as $key => $sub_module) {
+                //                 $sub_permissions = Permission::where('module_id', $sub_module['id'])->get();
+                //                 foreach ($sub_permissions as $key => $s_permission) {
+                //                     array_push($permission_arr, $s_permission);
+                //                 }
+                //             }
+                //         }
+                //     }
+                // }
                 // for dashboard
-                $adminDashboard = Permission::where('name', 'Admin|Dashboard')->first();
-                array_push($permission_arr, $adminDashboard);
-
+                $adminDashboards = Permission::where('name', 'Admin|Dashboard')->where('View All|Project
+                Management')->get();
+                
+                foreach ($adminDashboards as $key => $adminDashboard) {
+                   array_push($permission_arr, $adminDashboard);
+                }
+                
                 foreach ($permission_arr as $key => $permission) {
                     array_push($permission_ids, $permission['id']);
                 }
