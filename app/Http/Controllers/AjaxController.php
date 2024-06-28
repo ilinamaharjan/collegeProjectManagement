@@ -547,19 +547,20 @@ class AjaxController extends Controller
                 //     }
                 // }
                 // for dashboard
-                $adminDashboards = Permission::where('name', 'Admin|Dashboard')->where('View All|Project
-                Management')->get();
+                 $adminDashboards = Permission::where('name', 'Admin|Dashboard')->first();
+                 $adminDashboards2 = Permission::where('name','View All|Project Management')->first();
                 
-                foreach ($adminDashboards as $key => $adminDashboard) {
-                   array_push($permission_arr, $adminDashboard);
-                }
+                   array_push($permission_arr, $adminDashboards);
+                   array_push($permission_arr, $adminDashboards2);
                 
+                // dd($permission_arr);
+
                 foreach ($permission_arr as $key => $permission) {
                     array_push($permission_ids, $permission['id']);
                 }
                 $role->givePermissionTo($permission_ids);
                 $user->assignRole($role);
-                $user->notify(new SendCredentialsToUser($mail_data));
+                // $user->notify(new SendCredentialsToUser($mail_data));
             });
 
             // Alert::toast('User Created Successfully!','success');
